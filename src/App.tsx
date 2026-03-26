@@ -6,6 +6,8 @@ export default function Game() {
   const [history, setHistory] = useState([Array(9).fill(null)]);
   const [currentMove, setCurrentMove] = useState(0);
 
+  const [sortAsc, setSortAsc] = useState<boolean>(true);
+
   const xIsNext = currentMove % 2 === 0;
   const currentSquares = history[currentMove];
 
@@ -44,6 +46,8 @@ export default function Game() {
     );
   });
 
+  const sortedMoves = sortAsc ? moves : [...moves].reverse();
+
   return (
     <div className="game">
       <div className="game-board">
@@ -51,7 +55,14 @@ export default function Game() {
       </div>
 
       <div className="game-info">
-        <ol> {moves}</ol>
+        <button
+          onClick={() => {
+            setSortAsc(!sortAsc);
+          }}
+        >
+         Sort:{sortAsc ? "Ascending" : "Descending"}
+        </button>
+        <ol> {sortedMoves}</ol>
       </div>
     </div>
   );

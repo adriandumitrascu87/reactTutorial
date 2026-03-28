@@ -5,15 +5,17 @@ const boardSize = 3;
 export default function Game() {
   const [history, setHistory] = useState([Array(9).fill(null)]);
   const [currentMove, setCurrentMove] = useState(0);
+  const [locations, setLocations] = useState<number[]>([-1]);
 
   const [sortAsc, setSortAsc] = useState<boolean>(true);
 
   const xIsNext = currentMove % 2 === 0;
   const currentSquares = history[currentMove];
 
-  function handlePlay(nextSquares: any) {
+  function handlePlay(nextSquares: any, index: number) {
     const nextHistory = [...history.slice(0, currentMove + 1), nextSquares];
     setHistory(nextHistory);
+    setLocations([...locations.slice(0, currentMove + 1), index]);
     setCurrentMove(nextHistory.length - 1);
   }
 
@@ -25,14 +27,22 @@ export default function Game() {
     const isCurrentMove = move === history.length - 1;
     // for current move don't show button, just show text;
 
+    const index = locations[move];
+    const row = Math.floor(index / boardSize) + 1;
+    const col = (index % 3) + 1;
+    const location = move > 0 ? `(${row}, ${col})` : "";
+
     if (isCurrentMove) {
       return (
         <li key={move}>
-          {move === 0 ? "You are at game start" : `You are at move #${move}`}
+          {move === 0
+            ? "You are at game start"
+            : `You are at move #${move} ${location}`}
         </li>
       );
     }
-    let description = move === 0 ? "Go to game start" : `Go to move #${move}`;
+    let description =
+      move === 0 ? "Go to game start" : `Go to move #${move} ${location}`;
     if (move > 0) {
       description = "Go to move#" + move;
     } else {
@@ -60,7 +70,7 @@ export default function Game() {
             setSortAsc(!sortAsc);
           }}
         >
-         Sort:{sortAsc ? "Ascending" : "Descending"}
+          Sort:{sortAsc ? "Ascending" : "Descending"}
         </button>
         <ol> {sortedMoves}</ol>
       </div>
@@ -71,7 +81,7 @@ export default function Game() {
 interface BoardProps {
   xIsNext: boolean;
   squares: (string | null)[];
-  onPlay: (nextSquares: (string | null)[]) => void;
+  onPlay: (nextSquares: (string | null)[], index: number) => void;
 }
 
 function Board({ xIsNext, squares, onPlay }: BoardProps) {
@@ -84,13 +94,19 @@ function Board({ xIsNext, squares, onPlay }: BoardProps) {
     } else {
       nextSquares[i] = "O";
     }
-    onPlay(nextSquares);
+    onPlay(nextSquares, i);
   }
 
-  const winner = calculateWinner(squares);
+  const result = calculateWinner(squares);
+  const winnigLine = result?.line ?? [];
+  const isBoardFull = squares.every((s) => s !== null);
+
+  //possible outcomes
   let status;
-  if (winner) {
-    status = "Winner: " + winner;
+  if (result) {
+    status = `Winner:  ${result?.winner}`;
+  } else if (isBoardFull) {
+    status = "It's a DRAW!"
   } else {
     status = "Next player: " + (xIsNext ? "X" : "O");
   }
@@ -108,6 +124,7 @@ function Board({ xIsNext, squares, onPlay }: BoardProps) {
           key={squareIndex}
           value={squares[squareIndex]}
           onSquareClick={() => handleClick(squareIndex)}
+          highlight = {winnigLine.includes(squareIndex)}
         />,
       );
     }
@@ -125,15 +142,29 @@ function Board({ xIsNext, squares, onPlay }: BoardProps) {
   );
 }
 
-function Square({ value, onSquareClick }: any) {
+interface SquareProps {
+  value: string|null;
+  onSquareClick: () => void;
+  highlight: boolean;
+}
+
+function Square({ value, onSquareClick, highlight }: SquareProps) {
   return (
-    <button className="square" onClick={onSquareClick}>
+    <button
+      className={`square ${highlight ? "highlight" : ""}`}
+      onClick={onSquareClick}
+    >
       {value}
     </button>
   );
 }
 
-function calculateWinner(squares: any) {
+interface WinResult {
+  winner: string;
+  line: number[];
+}
+
+function calculateWinner(squares: (string | null)[]): WinResult | null {
   const lines = [
     [0, 1, 2],
     [3, 4, 5],
@@ -149,7 +180,10 @@ function calculateWinner(squares: any) {
     const [a, b, c] = lines[i];
 
     if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-      return squares[a];
+      return {
+        winner: squares[a] as string,
+        line: [a, b, c],
+      };
     }
   }
 

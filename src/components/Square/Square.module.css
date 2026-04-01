@@ -1,0 +1,35 @@
+.square {
+  width: 100%;
+  aspect-ratio: 1;
+  background: #f4f4f5;
+  border: none;
+  border-radius: 12px;
+  font-size: clamp(1.5rem, 6vw, 2.5rem);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.square:hover {
+  background: #e4e4e7;
+}
+
+.square:active {
+  transform: scale(0.95);
+}
+
+.x {
+  color: #534AB7;
+}
+
+.o {
+  color: #D85A30;
+}
+
+.highlight {
+  background: #EEEDFE;
+  color: #3C3489;
+}
